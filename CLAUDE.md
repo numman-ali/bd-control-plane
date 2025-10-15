@@ -287,3 +287,150 @@ bd ready
 ---
 
 **Remember**: BD is designed for AI-supervised workflows. Use it to maintain context across sessions, coordinate with other agents, and ensure complex work happens in the right order.
+
+---
+
+## 🚀 BD Control Plane Project - Current State
+
+**Last Updated**: October 16, 2025
+**Status**: Feature-complete UI, needs backend fixes for production
+**Completion**: 18/18 BD issues closed (100%)
+
+### What This Project Is
+
+BD Control Plane is a web dashboard for managing BD (Beads) issues across multiple GitHub repositories. It uses GitHub OAuth to authenticate users, then scans their repos for `.beads/` directories and visualizes the issues.
+
+### Tech Stack
+- **Frontend**: Next.js 15 + React 19 + TypeScript + Tailwind v4
+- **Auth**: Better Auth (NOT NextAuth!)
+- **Database**: Drizzle ORM + Neon Serverless Postgres
+- **GitHub API**: Octokit
+- **UI**: shadcn/ui + Framer Motion + Recharts
+
+### Current State Summary
+
+**What Works:**
+- ✅ Beautiful landing page with animations
+- ✅ Login page UI
+- ✅ Onboarding flow UI
+- ✅ Dashboard, Graph, Kanban, Analytics pages (UI)
+- ✅ Settings page UI
+- ✅ Admin panel UI
+- ✅ Command palette (Cmd+K)
+- ✅ Navigation with user menu
+- ✅ Responsive design (desktop)
+
+**What Needs Fixing:**
+- ❌ OAuth token retrieval (critical - breaks all API calls)
+- ❌ Mobile navigation (critical - no nav on mobile)
+- ❌ Database migrations (critical - can't deploy)
+- ❌ PAT functionality (UI exists but doesn't save to DB)
+- ❌ Admin panel shows mock data
+- ❌ Error handling in client components
+- ❌ Loading skeletons not used
+
+### 🔴 Critical Blockers
+
+**MUST FIX BEFORE PRODUCTION:**
+
+1. **OAuth Token Retrieval** - See `NEXT_STEPS.md` section 1
+2. **Mobile Navigation** - See `NEXT_STEPS.md` section 2
+3. **Database Migrations** - See `NEXT_STEPS.md` section 3
+
+These three issues will prevent the app from working at all.
+
+### 📚 Key Files for Next Agent
+
+**Read These First:**
+- `NEXT_STEPS.md` - Detailed fix instructions
+- `STANDOUT_FEATURES.md` - Product strategy and wow features
+- `LAUNCH.md` - What we built and deployment guide
+
+**Files to Modify:**
+- `app/api/*/route.ts` - Fix token retrieval (all 4 files)
+- `components/nav.tsx` - Add mobile menu
+- `app/settings/page.tsx` - Implement PAT storage
+- `app/admin/page.tsx` - Query real user data
+
+**Database Schema:**
+- `lib/db/schema.ts` - Already complete, just need to use it!
+
+### 🎯 Recommended Workflow for Next Agent
+
+1. **Read the audit**: `NEXT_STEPS.md` (comprehensive issue list)
+2. **Fix blockers**: Start with OAuth token retrieval
+3. **Add mobile nav**: Use shadcn Sheet component
+4. **Generate migrations**: Run `npx drizzle-kit generate`
+5. **Test locally**: Ensure OAuth flow works end-to-end
+6. **Commit often**: Keep BD issues updated!
+
+### 📊 BD Project Tracking
+
+This project used BD to track its own development!
+
+```bash
+# View project history
+bd list
+
+# See dependency graph
+bd dep tree bdviz-1
+
+# Check if anything remains
+bd ready
+```
+
+All 18 issues are closed, but you may want to create new issues for the critical fixes:
+
+```bash
+bd create "Fix OAuth token retrieval in API routes" -p 0 -t bug
+bd create "Add mobile navigation menu" -p 0 -t feature
+bd create "Generate database migrations" -p 0 -t task
+bd create "Implement PAT storage in database" -p 1 -t feature
+bd create "Add comprehensive error handling" -p 1 -t task
+```
+
+### 🎨 Vision for Standout Status
+
+See `STANDOUT_FEATURES.md` for ideas on:
+- Real-time collaboration
+- AI-powered insights
+- Share links & embeds
+- GitHub Actions integration
+- Success metrics to track
+
+### ⚠️ Important Notes
+
+1. **This is a PUBLIC repository** - All code is visible on GitHub
+2. **Be honest about limitations** - Don't hide issues
+3. **Document everything** - Future developers need context
+4. **Test thoroughly** - This could be a real product!
+
+### 🤝 Handoff Checklist
+
+Before you start working:
+- [ ] Read `NEXT_STEPS.md` completely
+- [ ] Understand the OAuth token issue
+- [ ] Check BD issues: `bd ready`
+- [ ] Review the tech stack documentation
+- [ ] Set up local environment (.env.local)
+
+### 💡 Quick Start for Development
+
+```bash
+# Create .env.local with test credentials
+# See .env.example for template
+
+# Install dependencies
+npm install --legacy-peer-deps
+
+# Run dev server (works on Termux with Turbopack)
+npm run dev
+
+# The app will run but APIs will fail (OAuth token issue)
+```
+
+---
+
+**Good luck building the next phase! You've got an incredible foundation to work with.** 🚀
+
+**Questions?** Check the comprehensive docs or review the codebase - everything is documented!
