@@ -1,27 +1,33 @@
 import { NextResponse } from "next/server";
-import { loadMultiRepoData } from "@/lib/bd-parser";
-import os from "os";
-import path from "path";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { loadGitHubMultiRepoData } from "@/lib/github-api";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const homeDir = os.homedir();
-    const scanPaths = [
-      path.join(homeDir, "repos"),
-      path.join(homeDir, "projects"),
-      path.join(homeDir, "work"),
-      process.cwd(), // Current project
-    ].filter(p => {
-      try {
-        return require("fs").existsSync(p);
-      } catch {
-        return false;
-      }
+    const session = await auth.api.getSession({
+      headers: await headers(),
     });
 
-    const data = loadMultiRepoData(scanPaths);
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Unauthorized - Please sign in" },
+        { status: 401 }
+      );
+    }
+
+    // Get GitHub access token from session
+    const accessToken = (session as any).accessToken;
+    if (!accessToken) {
+      return NextResponse.json(
+        { error: "No GitHub access token found. Please reconnect your GitHub account." },
+        { status: 400 }
+      );
+    }
+
+    const data = await loadGitHubMultiRepoData(accessToken);
 
     return NextResponse.json({
       repositories: data.repositories.map(repo => ({
@@ -42,7 +48,7 @@ export async function GET() {
   } catch (error) {
     console.error("Error loading repos:", error);
     return NextResponse.json(
-      { error: "Failed to load repositories" },
+      { error: "Failed to load repositories from GitHub" },
       { status: 500 }
     );
   }

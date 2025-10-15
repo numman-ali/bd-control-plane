@@ -1,30 +1,34 @@
 import { NextResponse } from "next/server";
-import { loadMultiRepoData, buildDependencyGraph } from "@/lib/bd-parser";
-import os from "os";
-import path from "path";
+import { buildDependencyGraph } from "@/lib/bd-parser";
+import { loadGitHubMultiRepoData } from "@/lib/github-api";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
+    // Check authentication
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const accessToken = (session as any).accessToken;
+    if (!accessToken) {
+      return NextResponse.json(
+        { error: "No access token found" },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const repo = searchParams.get("repo");
 
-    const homeDir = os.homedir();
-    const scanPaths = [
-      path.join(homeDir, "repos"),
-      path.join(homeDir, "projects"),
-      path.join(homeDir, "work"),
-      process.cwd(),
-    ].filter(p => {
-      try {
-        return require("fs").existsSync(p);
-      } catch {
-        return false;
-      }
-    });
-
-    const data = loadMultiRepoData(scanPaths);
+    const data = await loadGitHubMultiRepoData(accessToken);
 
     // Create issue-to-repo map
     const repoMap = new Map<string, string>();

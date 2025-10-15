@@ -1,27 +1,31 @@
 import { NextResponse } from "next/server";
-import { loadMultiRepoData, calculateMetrics } from "@/lib/bd-parser";
-import os from "os";
-import path from "path";
+import { calculateMetrics } from "@/lib/bd-parser";
+import { loadGitHubMultiRepoData } from "@/lib/github-api";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const homeDir = os.homedir();
-    const scanPaths = [
-      path.join(homeDir, "repos"),
-      path.join(homeDir, "projects"),
-      path.join(homeDir, "work"),
-      process.cwd(),
-    ].filter(p => {
-      try {
-        return require("fs").existsSync(p);
-      } catch {
-        return false;
-      }
-    });
+    // Check authentication
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
 
-    const data = loadMultiRepoData(scanPaths);
+    const accessToken = (session as any).accessToken;
+    if (!accessToken) {
+      return NextResponse.json(
+        { error: "No access token found" },
+        { status: 401 }
+      );
+    }
+
+    const data = await loadGitHubMultiRepoData(accessToken);
     const metrics = calculateMetrics(data.allIssues);
 
     // Calculate per-repo metrics
